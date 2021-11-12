@@ -1,0 +1,13 @@
+name: "Pupilfirst Grading"
+description: "Grade a submission in Pupilfirst LMS"
+inputs:
+  report_file_path:
+    description: Relative path of the report JSON file that holds the test data
+  test_mode:
+    description: Set to true for debugging
+outputs:
+  response: # output will be available to future steps
+    description: "Response from the LMS"
+runs:
+  using: "node12"
+  main: "dist/grading/index.js"

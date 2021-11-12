@@ -1,0 +1,39 @@
+{
+  "name": "pupilfirst-actions",
+  "version": "1.0.0",
+  "description": "Actions for Pupilfirst LMS",
+  "scripts": {
+    "lint": "eslint .",
+    "prepareReporting": "ncc build reporting.js -o dist/reporting --source-map --license licenses.txt",
+    "prepareGrading": "ncc build grading.js -o dist/grading --source-map --license licenses.txt",
+    "prepare": "npm run prepareReporting && npm run prepareGrading",
+    "test": "jest",
+    "all": "npm run lint && npm run prepare && npm run test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pupilfirst/actions.git"
+  },
+  "keywords": [
+    "GitHub",
+    "Actions",
+    "JavaScript",
+    "Pupilfirst"
+  ],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/pupilfirst/actions/issues"
+  },
+  "homepage": "https://github.com/pupilfirst/actions#readme",
+  "dependencies": {
+    "@actions/core": "^1.6.0",
+    "graphql": "^16.0.0",
+    "graphql-request": "^3.5.0"
+  },
+  "devDependencies": {
+    "@vercel/ncc": "^0.31.0",
+    "eslint": "^8.0.0",
+    "jest": "^27.0.6"
+  }
+}
