@@ -15,4 +15,4 @@ outputs:
     description: "Response from the LMS"
 runs:
   using: "node12"
-  main: "dist/reporting/index.js"
+  main: "../dist/reporting/index.js"
