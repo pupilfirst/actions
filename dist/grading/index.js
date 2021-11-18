@@ -7240,8 +7240,14 @@ if (reportFilePath != undefined) {
     throw error;
   }
 } else {
-  throw "Report file path not provided";
+  throw "Report file path not provided or invalid";
 }
+
+const validStatuses = ["skip", "passed", "failed"];
+
+let validStatus = (status) => {
+  return validStatuses.includes(status);
+};
 
 const passed = reportData.status == "passed";
 
@@ -7261,7 +7267,7 @@ const variables = {
 };
 
 async function run() {
-  if (!skip) {
+  if (!skip && validStatuses(reportData.status)) {
     const data = await graphQLClient.request(mutation, variables);
     console.log(JSON.stringify(data, undefined, 2));
   } else {
