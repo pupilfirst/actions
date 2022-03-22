@@ -13,16 +13,41 @@ const graphQLClient = new GraphQLClient(endpoint, {
   },
 });
 
-const mutation = gql`
-  mutation SubmissionReport(
+const completedSubmissionReportQuery = gql`
+  mutation CompletedSubmissionReport(
     $submissionId: ID!
     $description: String!
-    $status: SubmissionReportStatus!
+    $conclusion: SubmissionReportConclusion!
   ) {
-    createSubmissionReports(
+    createCompletedSubmissionReport(
       submissionId: $submissionId
       description: $description
-      status: $status
+      conclusion: $conclusion
+    ) {
+      success
+    }
+  }
+`;
+
+const inProgressSubmissionReportQuery = gql`
+  mutation InProgressSubmissionReport(
+    $submissionId: ID!
+    $description: String!
+  ) {
+    createInProgressSubmissionReport(
+      submissionId: $submissionId
+      description: $description
+    ) {
+      success
+    }
+  }
+`;
+
+const queuedSubmissionReportQuery = gql`
+  mutation QueuedSubmissionReport($submissionId: ID!, $description: String!) {
+    createQueuedSubmissionReport(
+      submissionId: $submissionId
+      description: $description
     ) {
       success
     }
@@ -45,6 +70,8 @@ const reportFilePath = core.getInput("report_file_path");
 
 const statusInput = core.getInput("status");
 
+const conclusionInput = core.getInput("conclusionInput");
+
 const descriptionInput = core.getInput("description");
 
 // Check for report data
@@ -60,15 +87,22 @@ if (reportFilePath != "") {
   }
 }
 
-const reportStatus = statusInput != "" ? statusInput : reportData.status;
+let reportConclusion =
+  conclusionInput != "" ? conclusionInput : reportData.conclusion;
 
-const reportDescription =
+let reportDescription =
   descriptionInput != "" ? descriptionInput : reportData.report;
 
-const validStatuses = ["error", "failure", "pending", "success"];
+const validStatuses = ["queued", "in_progress", "completed"];
+
+const validConclusions = ["success", "error", "failure"];
 
 let validStatus = (status) => {
   return validStatuses.includes(status);
+};
+
+let validConclusion = (conclusion) => {
+  return validConclusions.includes(conclusion);
 };
 
 if (!validStatus(reportStatus)) {
@@ -77,18 +111,38 @@ if (!validStatus(reportStatus)) {
     "Something went wrong with the tests! Please check the workflow";
 }
 
-const variables = {
+let variables = {
   submissionId: submissionData.id,
   description: reportDescription,
   status: reportStatus,
 };
 
 async function run() {
-  if (reportStatus != undefined && reportDescription != undefined) {
+  let mutation;
+  switch (statusInput) {
+    case "queued":
+      mutation = queuedSubmissionReportQuery;
+      break;
+    case "in_progress":
+      mutation = inProgressSubmissionReportQuery;
+      break;
+    case "completed":
+      mutation = completedSubmissionReportQuery;
+      if (validConclusion(reportConclusion)) {
+        variables.conclusion = reportConclusion;
+      } else {
+        throw "Invalid conclusion for completed  status";
+      }
+
+      break;
+    default:
+      throw "Invalid submission report status";
+  }
+
+  if (reportDescription != undefined) {
     const data = await graphQLClient.request(mutation, variables);
-    console.log(JSON.stringify(data, undefined, 2));
   } else {
-    throw "Report status or description missing";
+    throw "Invalid report description";
   }
 }
 
