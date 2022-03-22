@@ -7279,23 +7279,11 @@ let reportConclusion =
 let reportDescription =
   descriptionInput != "" ? descriptionInput : reportData.report;
 
-const validStatuses = ["queued", "in_progress", "completed"];
-
 const validConclusions = ["success", "error", "failure"];
-
-let validStatus = (status) => {
-  return validStatuses.includes(status);
-};
 
 let validConclusion = (conclusion) => {
   return validConclusions.includes(conclusion);
 };
-
-if (!validStatus(reportStatus)) {
-  reportStatus = "error";
-  reportDescription =
-    "Something went wrong with the tests! Please check the workflow";
-}
 
 let variables = {
   submissionId: submissionData.id,
@@ -7317,7 +7305,7 @@ async function run() {
       if (validConclusion(reportConclusion)) {
         variables.conclusion = reportConclusion;
       } else {
-        throw "Invalid conclusion for completed  status";
+        throw "Invalid conclusion for completed status";
       }
 
       break;
