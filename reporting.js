@@ -19,7 +19,7 @@ const completedSubmissionReportQuery = gql`
     $description: String!
     $conclusion: SubmissionReportConclusion!
   ) {
-    createCompletedSubmissionReport(
+    concludeSubmissionReport(
       submissionId: $submissionId
       description: $description
       conclusion: $conclusion
@@ -32,9 +32,9 @@ const completedSubmissionReportQuery = gql`
 const inProgressSubmissionReportQuery = gql`
   mutation InProgressSubmissionReport(
     $submissionId: ID!
-    $description: String!
+    $description: String
   ) {
-    createInProgressSubmissionReport(
+    beginProcessingSubmissionReport(
       submissionId: $submissionId
       description: $description
     ) {
@@ -44,8 +44,8 @@ const inProgressSubmissionReportQuery = gql`
 `;
 
 const queuedSubmissionReportQuery = gql`
-  mutation QueuedSubmissionReport($submissionId: ID!, $description: String!) {
-    createQueuedSubmissionReport(
+  mutation QueuedSubmissionReport($submissionId: ID!, $description: String) {
+    queueSubmissionReport(
       submissionId: $submissionId
       description: $description
     ) {
@@ -116,10 +116,10 @@ async function run() {
       break;
     case "completed":
       mutation = completedSubmissionReportQuery;
-      if (validConclusion(reportConclusion)) {
+      if (validConclusion(reportConclusion) && reportDescription != undefined) {
         variables.conclusion = reportConclusion;
       } else {
-        throw "Invalid conclusion for completed status";
+        throw "Invalid conclusion for completed status or missing description";
       }
 
       break;
@@ -127,11 +127,8 @@ async function run() {
       throw "Invalid submission report status";
   }
 
-  if (reportDescription != undefined) {
-    const data = await graphQLClient.request(mutation, variables);
-  } else {
-    throw "Invalid report description";
-  }
+  const data = await graphQLClient.request(mutation, variables);
+  console.log(JSON.stringify(data, undefined, 2));
 }
 
 let testMode = core.getBooleanInput("test_mode");
