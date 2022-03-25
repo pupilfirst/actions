@@ -76,6 +76,8 @@ const descriptionInput = core.getInput("description");
 
 // Check for report data
 let reportData;
+let reportConclusion;
+let reportDescription;
 
 if (reportFilePath != "") {
   try {
@@ -87,11 +89,13 @@ if (reportFilePath != "") {
   }
 }
 
-let reportConclusion =
-  conclusionInput != "" ? conclusionInput : reportData.status;
-
-let reportDescription =
-  descriptionInput != "" ? descriptionInput : reportData.report;
+if (reportData != undefined) {
+  reportConclusion = reportData.status;
+  reportDescription = reportData.report;
+} else {
+  reportConclusion = conclusionInput;
+  reportDescription = descriptionInput;
+}
 
 let reportStatus = statusInput;
 
