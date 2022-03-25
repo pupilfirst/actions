@@ -7274,7 +7274,7 @@ if (reportFilePath != "") {
 }
 
 let reportConclusion =
-  conclusionInput != "" ? conclusionInput : reportData.conclusion;
+  conclusionInput != "" ? conclusionInput : reportData.status;
 
 let reportDescription =
   descriptionInput != "" ? descriptionInput : reportData.report;
