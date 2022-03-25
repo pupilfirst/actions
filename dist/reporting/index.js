@@ -7279,6 +7279,8 @@ let reportConclusion =
 let reportDescription =
   descriptionInput != "" ? descriptionInput : reportData.report;
 
+let reportStatus = statusInput;
+
 const validConclusions = ["success", "error", "failure"];
 
 let validConclusion = (conclusion) => {
