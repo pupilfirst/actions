@@ -70,7 +70,7 @@ const reportFilePath = core.getInput("report_file_path");
 
 const statusInput = core.getInput("status");
 
-const conclusionInput = core.getInput("conclusionInput");
+const conclusionInput = core.getInput("conclusion");
 
 const descriptionInput = core.getInput("description");
 
