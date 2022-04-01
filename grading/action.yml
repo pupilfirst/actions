@@ -1,6 +1,9 @@
 name: "Pupilfirst Grading"
 description: "Grade a submission in Pupilfirst LMS"
 inputs:
+  fail_submission:
+    description: Set the value to true if submission needs to be rejected. Will ignore results in report file.
+    default: false
   report_file_path:
     description: Relative path of the report JSON file that holds the test data
   test_mode:
