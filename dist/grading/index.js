@@ -7232,8 +7232,10 @@ const reportFilePath = core.getInput("report_file_path");
 const fail_submission = core.getBooleanInput("fail_submission");
 
 let reportData;
+let passed;
+let skip;
 
-if (!fail_submission && reportFilePath != undefined) {
+if (!fail_submission && reportFilePath != "") {
   try {
     reportData = JSON.parse(
       fs.readFileSync(path.join(process.env.GITHUB_WORKSPACE, reportFilePath))
@@ -7252,9 +7254,9 @@ let validStatus = (status) => {
 };
 
 if (reportData) {
-  const passed = reportData.status == "success";
+  passed = reportData.status == "success";
 
-  const skip = reportData.grade == "skip";
+  skip = reportData.grade == "skip";
 }
 
 const grades = submissionData["target"]["evaluation_criteria"].map((ec) => {
