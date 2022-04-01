@@ -13,4 +13,4 @@ outputs:
     description: "Response from the LMS"
 runs:
   using: "node12"
-  main: ""../dist/grading/index.js""
+  main: "../dist/grading/index.js"
