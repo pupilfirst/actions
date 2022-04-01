@@ -7231,8 +7231,9 @@ const reportFilePath = core.getInput("report_file_path");
 
 const fail_submission = core.getBooleanInput("fail_submission");
 
+let reportData;
+
 if (!fail_submission && reportFilePath != undefined) {
-  let reportData;
   try {
     reportData = JSON.parse(
       fs.readFileSync(path.join(process.env.GITHUB_WORKSPACE, reportFilePath))
