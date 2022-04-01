@@ -7202,12 +7202,12 @@ const graphQLClient = new GraphQLClient(endpoint, {
 const completedSubmissionReportQuery = gql`
   mutation CompletedSubmissionReport(
     $submissionId: ID!
-    $description: String!
+    $testReport: String
     $conclusion: SubmissionReportConclusion!
   ) {
     concludeSubmissionReport(
       submissionId: $submissionId
-      description: $description
+      testReport: $testReport
       conclusion: $conclusion
     ) {
       success
@@ -7216,13 +7216,10 @@ const completedSubmissionReportQuery = gql`
 `;
 
 const inProgressSubmissionReportQuery = gql`
-  mutation InProgressSubmissionReport(
-    $submissionId: ID!
-    $description: String
-  ) {
+  mutation InProgressSubmissionReport($submissionId: ID!, $testReport: String) {
     beginProcessingSubmissionReport(
       submissionId: $submissionId
-      description: $description
+      testReport: $testReport
     ) {
       success
     }
@@ -7230,10 +7227,10 @@ const inProgressSubmissionReportQuery = gql`
 `;
 
 const queuedSubmissionReportQuery = gql`
-  mutation QueuedSubmissionReport($submissionId: ID!, $description: String) {
+  mutation QueuedSubmissionReport($submissionId: ID!, $testReport: String) {
     queueSubmissionReport(
       submissionId: $submissionId
-      description: $description
+      testReport: $testReport
     ) {
       success
     }
@@ -7293,7 +7290,7 @@ let validConclusion = (conclusion) => {
 
 let variables = {
   submissionId: submissionData.id,
-  description: reportDescription,
+  testReport: reportDescription,
   status: reportStatus,
 };
 
