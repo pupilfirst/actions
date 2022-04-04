@@ -7274,10 +7274,10 @@ if (reportFilePath != "") {
 
 if (reportData != undefined) {
   reportConclusion = reportData.status;
-  reportDescription = reportData.report;
+  reportDescription = reportData.report || descriptionInput || "Unknown";
 } else {
   reportConclusion = conclusionInput;
-  reportDescription = descriptionInput;
+  reportDescription = descriptionInput || "Unknown";
 }
 
 let reportStatus = statusInput;
