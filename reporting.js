@@ -90,7 +90,9 @@ let reportIfGraded = (reportData) => {
   let grading = reportData.grading;
 
   let testReport =
-    grading == "rejected" ? "Submission rejected by automated tests" : "";
+    grading == "rejected"
+      ? "Submission will be eventually rejected and feedback will be shared"
+      : "";
 
   return testReport;
 };
