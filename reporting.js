@@ -155,5 +155,6 @@ if (testMode) {
   console.log(reportData);
   console.log(submissionData);
 } else {
+  console.log(reportData);
   run().catch((error) => console.log(error));
 }
