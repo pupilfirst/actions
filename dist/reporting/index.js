@@ -7272,12 +7272,25 @@ if (reportFilePath != "") {
   }
 }
 
+let reportIfGraded = (reportData) => {
+  let grading = reportData.grading;
+
+  let testReport =
+    grading == "rejected" ? "Submission rejected by automated tests" : "";
+
+  return testReport;
+};
+
 if (reportData != undefined) {
   reportConclusion = reportData.status;
-  reportDescription = reportData.report || descriptionInput || "Unknown";
+  reportDescription =
+    reportData.report ||
+    descriptionInput ||
+    reportIfGraded(reportData) ||
+    "Test report unavailable";
 } else {
   reportConclusion = conclusionInput;
-  reportDescription = descriptionInput || "Unknown";
+  reportDescription = descriptionInput || "Test report unavailable";
 }
 
 let reportStatus = statusInput;
