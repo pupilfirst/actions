@@ -77,9 +77,9 @@ const grades = submissionData["target"]["evaluation_criteria"].map((ec) => {
   let ecGrade = {};
   ecGrade["evaluationCriterionId"] = ec.id;
   if (fail_submission) {
-    ecGrade["grade"] = ec.passGrade - 1;
+    ecGrade["grade"] = ec.pass_grade - 1;
   } else if (reportData) {
-    ecGrade["grade"] = passed ? ec.passGrade : ec.passGrade - 1;
+    ecGrade["grade"] = passed ? ec.pass_grade : ec.pass_grade - 1;
   } else {
     throw "Could not determine pass or fail status of the submission";
   }
