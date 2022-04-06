@@ -4,6 +4,8 @@ inputs:
   fail_submission:
     description: Set the value to true if submission needs to be rejected. Will ignore results in report file.
     default: false
+  feedback:
+    description: Feedback text that will be used in the absence of report file, and when fail_submission input is used.
   report_file_path:
     description: Relative path of the report JSON file that holds the test data
   test_mode:

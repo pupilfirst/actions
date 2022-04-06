@@ -45,6 +45,8 @@ const reportFilePath = core.getInput("report_file_path");
 
 const fail_submission = core.getBooleanInput("fail_submission");
 
+const feedbackInput = core.getInput("feedback");
+
 let reportData;
 let passed;
 let skip;
@@ -91,7 +93,7 @@ const variables = {
   submissionId: submissionData.id,
   grades: grades,
   checklist: submissionData.checklist,
-  feedback: reportData.feedback,
+  feedback: reportData.feedback || feedbackInput,
 };
 
 async function run() {
