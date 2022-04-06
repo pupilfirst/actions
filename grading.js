@@ -51,7 +51,9 @@ let reportData;
 let passed;
 let skip;
 
-if (!fail_submission && reportFilePath != "") {
+if (fail_submission) {
+  reportData = {};
+} else if (reportFilePath != "") {
   try {
     reportData = JSON.parse(
       fs.readFileSync(path.join(process.env.GITHUB_WORKSPACE, reportFilePath))
@@ -60,7 +62,7 @@ if (!fail_submission && reportFilePath != "") {
     throw error;
   }
 } else {
-  throw "Report file path not provided or invalid";
+  throw "Either report file path should be provide or fail submission should be used";
 }
 
 const validStatuses = ["success", "failure", "error"];
