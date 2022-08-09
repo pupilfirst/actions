@@ -97,10 +97,22 @@ let reportIfGraded = (reportData) => {
   return testReport;
 };
 
+let truncateReport = (reportText) => {
+  if (typeof reportText !== "string") {
+    return reportText;
+  }
+
+  if (reportText.length > 1000) {
+    return "Report truncated:\n\n" + reportText.substring(0, 970);
+  } else {
+    return reportText;
+  }
+};
+
 if (reportData != undefined) {
   reportConclusion = reportData.status;
   reportDescription =
-    reportData.report ||
+    truncateReport(reportData.report) ||
     descriptionInput ||
     reportIfGraded(reportData) ||
     "Test report unavailable";
