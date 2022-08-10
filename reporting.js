@@ -102,8 +102,11 @@ let truncateReport = (reportText) => {
     return reportText;
   }
 
-  if (reportText.length > 1000) {
-    return "Report truncated:\n\n" + reportText.substring(0, 970);
+  if (reportText.length > 10000) {
+    return (
+      "Report has been truncated because it was longer than 10,000 chars:\n\n---\n\n" +
+      reportText.substring(0, 9900)
+    );
   } else {
     return reportText;
   }
