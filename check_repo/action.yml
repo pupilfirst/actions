@@ -1,0 +1,79 @@
+name: "Check Repository Structure"
+description: "Check whether the file structure of a supplied repository is correct"
+inputs:
+  globs:
+    description: Comma-separated globs to check.
+    required: true
+  repoUrl:
+    description: URL to the repository.
+    required: true
+  repoPath:
+    description: Path to the repository.
+    default: ""
+  testMode:
+    description: Set to true for debugging
+    default: false
+outputs:
+  response: # output will be available to future steps
+    description: "Response from the LMS"
+runs:
+  using: "composite"
+  steps:
+    - name: Check out the repository with submitted code
+      uses: actions/checkout@v2
+      continue-on-error: true
+      id: checkout-repo
+      with:
+        repository: ${{inputs.repoUrl}}
+        path: submission
+    - name: Report invalid repository URL in submission
+      if: steps.checkout-repo.outcome != 'success'
+      uses: pupilfirst/actions/grading@v1
+      with:
+        fail_submission: true
+        feedback: The submitted repository URL is either invalid or private. Before making another submission, please make sure that your GitHub repository is visible to the public.
+    - name: Verify structure of the repo
+      if: steps.checkout-repo.outcome === 'success'
+      id: verify-structure
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const patterns = core.getMultilineInput("globs", { required: true });
+          const repoPath = core.getInput("repoPath");
+
+          const globbers = patterns.map(pattern => {
+            const prefixedPattern = repoPath === "" ? pattern : repoPath + "/" + pattern
+            return await glob.create(prefixedPattern)
+          })
+
+          const missingPaths = globbers.flatMap(globber => {
+            const files = await globber.glob()
+
+            if (files.length === 0) {
+              return globber.getSearchPaths()
+            } else {
+              return []
+            }
+          })
+
+          return({
+            outcome: missingPaths.length === 0 ? 'success' : 'failure',
+            missingPaths: missingPaths.map(path => "- " + path).join("\n")
+          })
+      runs:
+        using: "node12"
+        main: "../dist/check_repo/index.js"
+    - name: Report invalid repository URL in submission
+      if: steps.verify-structure.outcome != 'success'
+      uses: pupilfirst/actions/grading@v1
+      with:
+        fail_submission: true
+        feedback: |
+          It looks like your repository doesn't contain the files or folders
+          that this assignment requires it to have. We went through your repo,
+          but couldn't find anything at the following paths:
+
+          {{steps.verify-structure.missingPaths}}
+    - name: Set fail condition
+      if: steps.verify-structure.outcome != 'success'
+      run: exit 1
