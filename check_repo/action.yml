@@ -51,6 +51,9 @@ runs:
             return "failure"
           }
         result-encoding: string
+    - name: Check the result from previous step
+      run: echo "result it ${{ steps.get-repo-name.outputs.result }}"
+      shell: bash
     - name: Report invalid repository URL in submission
       if: ${{ steps.get-repo-name.outputs.result == 'failure' && !inputs.testMode }}
       uses: pupilfirst/actions/grading@v1
