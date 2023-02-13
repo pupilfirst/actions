@@ -51,8 +51,11 @@ runs:
             return { errored: true };
           }
         result-encoding: string
+    - name: Check value of errored
+      run: echo "steps.get-repo-name.outputs.result.errored is ${{ steps.get-repo-name.outputs.result.errored }}"
+      shell: bash
     - name: Report invalid repository URL in submission
-      if: steps.get-repo-name.outputs.result.errored && !inputs.testMode
+      if: ${{ steps.get-repo-name.outputs.result.errored && !inputs.testMode }}
       uses: pupilfirst/actions/grading@v1
       with:
         fail_submission: true
@@ -73,7 +76,7 @@ runs:
         repository: ${{ steps.get-repo-name.outputs.result.repoName }}
         path: ${{ inputs.repoPath }}
     - name: Report invalid repository URL in submission
-      if: steps.checkout-repo.outcome != 'success' && !inputs.testMode
+      if: ${{ steps.checkout-repo.outcome != 'success' && !inputs.testMode }}
       uses: pupilfirst/actions/grading@v1
       with:
         fail_submission: true
@@ -100,12 +103,12 @@ runs:
           const patterns = core.getMultilineInput("globs", { required: true });
           const repoPath = core.getInput("repoPath");
 
-          const globbers = patterns.map(pattern => {
+          const globbers = await Promise.all(patterns.map(async (pattern) => {
             const prefixedPattern = repoPath === "" ? pattern : repoPath + "/" + pattern
             return await glob.create(prefixedPattern)
-          })
+          }));
 
-          const missingPaths = globbers.flatMap(globber => {
+          const missingPaths = await Promise.all(globbers.flatMap(async (globber) => {
             const files = await globber.glob()
 
             if (files.length === 0) {
@@ -113,7 +116,7 @@ runs:
             } else {
               return []
             }
-          })
+          }));
 
           return({
             isValid: missingPaths.length === 0
