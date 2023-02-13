@@ -15,10 +15,13 @@ inputs:
 outputs:
   isValid:
     description: Whether the repository structure is valid or not
-    value: ${{ steps.verify-structure.outputs.isValid }}
+    value: ${{ steps.verify-structure.outputs.result.isValid }}
 runs:
   using: composite
   steps:
+    - name: Check testMode
+      run: echo "testMode is now ${{ inputs.testMode }}"
+      shell: bash
     - name: Check out the parent repository with student submission data
       uses: actions/checkout@v2
     - name: Extract the student submission repo from URL
@@ -27,27 +30,29 @@ runs:
       continue-on-error: true
       with:
         script: |
-          const submission = require('./submission.json')
-          const gitURL =  submission.checklist[0].result
-          const regex = /(?:git@|https:\/\/)github.com[:\/]([a-zA-Z0-9\-_.]+\/[a-zA-Z0-9\-_.\/]+)$/g
-          const matches = regex.exec(gitURL)
+          const submission = require('./submission.json');
+          const gitURL =  submission.checklist[0].result;
+          const regex = /(?:git@|https:\/\/)github.com[:\/]([a-zA-Z0-9\-_.]+\/[a-zA-Z0-9\-_.\/]+)$/g;
+          const matches = regex.exec(gitURL);
 
           let repoName;
 
           if (matches === null) {
-            throw "The submitted URL doesn't look like it points to a GitHub repo: " + gitURL
+            console.log("The submitted URL doesn't look like it points to a GitHub repo: " + gitURL);
+            return { errored: true };
           } else {
-            repoName = matches[1].replace(/.git$|\/$/, "")
+            repoName = matches[1].replace(/.git$|\/$/, "");
           }
 
           if (repoName.split("/").length == 2) {
-            return repoName
+            return { errored: false, repoName: repoName };
           } else {
-            throw "The submitted URL seems to be of a folder inside a repository"
+            console.log("The submitted URL seems to be of a folder inside a repository");
+            return { errored: true };
           }
         result-encoding: string
     - name: Report invalid repository URL in submission
-      if: steps.get-repo-name.outcome != 'success' && !inputs.testMode
+      if: steps.get-repo-name.outputs.result.errored && !inputs.testMode
       uses: pupilfirst/actions/grading@v1
       with:
         fail_submission: true
@@ -59,16 +64,13 @@ runs:
           ```
           https://github.com/USERNAME/wd201
           ```
-    - name: Stop if we failed to get the repo URL
-      if: steps.get-repo-name.outcome != 'success'
-      run: exit 1
-      shell: bash
     - name: Check out the repository with submitted code
+      if: ${{ !steps.get-repo-name.outputs.result.errored }}
       uses: actions/checkout@v2
       continue-on-error: true
       id: checkout-repo
       with:
-        repository: ${{ steps.get-repo-name.outputs.result }}
+        repository: ${{ steps.get-repo-name.outputs.result.repoName }}
         path: ${{ inputs.repoPath }}
     - name: Report invalid repository URL in submission
       if: steps.checkout-repo.outcome != 'success' && !inputs.testMode
@@ -76,18 +78,21 @@ runs:
       with:
         fail_submission: true
         feedback: |
-          We're sorry, but we couldn't visit the GitHub URL that you supplied.
-          The URL _looked_ like it could be valid, but when we were unable to
-          clone a git repository using it. This usually happens if the supplied
-          URL is incorrect, or the repository is _private_.
+          We're sorry, but we were unable to clone a git repository using the
+          URL that you supplied in your submission. For the record, this was
+          the URL we tried to clone a repository from:
+
+          ```
+          https://github.com/${{ steps.get-repo-name.outputs.result.repoName }}
+          ```
+
+          This usually happens if the supplied URL is incorrect, or the
+          repository is private.
 
           Before making another submission, please ensure that the submitted
           repository is visible to the public.
-    - name: Stop if we failed to clone the repo
-      if: steps.checkout-repo.outcome != 'success'
-      run: exit 1
-      shell: bash
     - name: Verify structure of the repo
+      if: steps.checkout-repo.outcome == 'success'
       id: verify-structure
       uses: actions/github-script@v6
       with:
@@ -115,7 +120,7 @@ runs:
             missingPaths: missingPaths.map(path => "- " + path).join("\n")
           })
     - name: Report invalid repository URL in submission
-      if: ${{ !steps.verify-structure.outputs.isValid && !inputs.testMode }}
+      if: ${{ !steps.verify-structure.outputs.result.isValid && !inputs.testMode }}
       uses: pupilfirst/actions/grading@v1
       with:
         fail_submission: true
@@ -125,7 +130,3 @@ runs:
           but couldn't find anything at the following paths:
 
           ${{ steps.verify-structure.missingPaths }}
-    - name: Stop with error code if the repo structure was invalid
-      if: ${{ !steps.verify-structure.outputs.isValid }}
-      run: exit 1
-      shell: bash
