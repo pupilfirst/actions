@@ -125,6 +125,12 @@ runs:
     - name: Check output of last result
       run: echo "result is ${{ steps.verify-structure.outputs.result }}"
       shell: bash
+    - name: Check if for result
+      run: echo "result condition is ${{ steps.verify-structure.outputs.result == 'failure' }}"
+      shell: bash
+    - name: Check if for testMode
+      run: echo "result condition is ${{ inputs.testMode == 'false' }}"
+      shell: bash
     - name: Report invalid repository URL in submission
       if: ${{ steps.verify-structure.outputs.result == 'failure' && inputs.testMode == 'false' }}
       uses: pupilfirst/actions/grading@v1
