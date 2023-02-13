@@ -113,7 +113,7 @@ runs:
 
           let missingSomeFiles = false;
 
-          allMissingFiles.each(files => {
+          allMissingFiles.forEach(files => {
             if (files.length === 0) {
               missingSomeFiles = true;
             }
