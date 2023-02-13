@@ -106,24 +106,26 @@ runs:
           const repoPath = core.getInput("repoPath");
 
           const globbers = await Promise.all(patterns.map(async (pattern) => {
-            const prefixedPattern = repoPath === "" ? pattern : repoPath + "/" + pattern
-            return await glob.create(prefixedPattern)
+            const prefixedPattern = repoPath === "" ? pattern : repoPath + "/" + pattern;
+            return await glob.create(prefixedPattern);
           }));
 
-          const missingPaths = await Promise.all(globbers.flatMap(async (globber) => {
-            const files = await globber.glob()
+          const allMissingFiles = await Promise.all(globbers.flatMap(async (globber) => {
+            return await globber.glob();
+          }));
 
+          const missingFiles = allMissingFiles.flatMap(files => {
             if (files.length === 0) {
-              return globber.getSearchPaths()
+              return globber.getSearchPaths();
             } else {
-              return []
+              return [];
             }
-          }));
+          });
 
-          if (missingPaths.length === 0) {
-            return ""
+          if (missingFiles.length === 0) {
+            return "";
           } else {
-            return missingPaths.map(path => "- " + path).join("\n")
+            return missingFiles.map(path => "- " + path.replace(/\/home\/runner\/work\/student-[0-9]+\/student-[0-9]+\/submission\//, "")).join("\n");
           }
     - name: Report invalid repository URL in submission
       if: ${{ steps.verify-structure.outputs.result != '' && inputs.testMode == 'false' }}
@@ -135,4 +137,6 @@ runs:
           that this assignment requires it to have. We went through your repo,
           but couldn't find anything at the following paths:
 
+          ```
           ${{ steps.verify-structure.outputs.result }}
+          ```
