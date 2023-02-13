@@ -11,11 +11,11 @@ inputs:
   testMode:
     description: Set to true for debugging
     required: false
-    default: false
+    default: "false"
 outputs:
-  isValid:
+  missingPaths:
     description: Whether the repository structure is valid or not
-    value: ${{ steps.verify-structure.outputs.result.isValid }}
+    value: ${{ steps.verify-structure.outputs.result }}
 runs:
   using: composite
   steps:
@@ -51,14 +51,11 @@ runs:
             return "failure"
           }
         result-encoding: string
-    - name: Check the result from previous step
-      run: echo "result is ${{ steps.get-repo-name.outputs.result }}; typeof result is ${{ typeof(steps.get-repo-name.outputs.result) }}; typeof testMode is ${{ inputs.testMode }}"
-      shell: bash
     - name: Check the next boolean for if
-      run: echo "if condition should get ${{ steps.get-repo-name.outputs.result == 'failure' && !inputs.testMode }}"
+      run: echo "if condition should get ${{ steps.get-repo-name.outputs.result == 'failure' && inputs.testMode == 'false' }}"
       shell: bash
     - name: Report invalid repository URL in submission
-      if: ${{ steps.get-repo-name.outputs.result == 'failure' && !inputs.testMode }}
+      if: ${{ steps.get-repo-name.outputs.result == 'failure' && inputs.testMode == 'false' }}
       uses: pupilfirst/actions/grading@v1
       with:
         fail_submission: true
@@ -79,7 +76,7 @@ runs:
         repository: ${{ steps.get-repo-name.outputs.result }}
         path: ${{ inputs.repoPath }}
     - name: Report invalid repository URL in submission
-      if: ${{ steps.checkout-repo.outcome != 'success' && !inputs.testMode }}
+      if: ${{ steps.checkout-repo.outcome != 'success' && inputs.testMode == 'false' }}
       uses: pupilfirst/actions/grading@v1
       with:
         fail_submission: true
@@ -127,7 +124,7 @@ runs:
             return missingPaths.map(path => "- " + path).join("\n")
           }
     - name: Report invalid repository URL in submission
-      if: ${{ steps.verify-structure.outputs.result != '' && !inputs.testMode }}
+      if: ${{ steps.verify-structure.outputs.result != '' && inputs.testMode == 'false' }}
       uses: pupilfirst/actions/grading@v1
       with:
         fail_submission: true
