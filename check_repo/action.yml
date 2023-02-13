@@ -52,7 +52,7 @@ runs:
           }
         result-encoding: string
     - name: Check the result from previous step
-      run: echo "result is ${{ steps.get-repo-name.outputs.result }}"
+      run: echo "result is ${{ steps.get-repo-name.outputs.result }}; typeof result is ${{ typeof(steps.get-repo-name.outputs.result) }}; typeof testMode is ${{ inputs.testMode }}"
       shell: bash
     - name: Check the next boolean for if
       run: echo "if condition should get ${{ steps.get-repo-name.outputs.result == 'failure' && !inputs.testMode }}"
