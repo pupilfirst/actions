@@ -13,6 +13,9 @@ inputs:
     required: false
     default: "false"
 outputs:
+  cloneOutcome:
+    description: Whether the submitted repo was checked out
+    value: ${{ steps.checkout-repo.outcome }}
   missingPaths:
     description: Whether the repository structure is valid or not
     value: ${{ steps.verify-structure.outputs.result }}
@@ -51,9 +54,6 @@ runs:
             return "failure"
           }
         result-encoding: string
-    - name: Check the next boolean for if
-      run: echo "if condition should get ${{ steps.get-repo-name.outputs.result == 'failure' && inputs.testMode == 'false' }}"
-      shell: bash
     - name: Report invalid repository URL in submission
       if: ${{ steps.get-repo-name.outputs.result == 'failure' && inputs.testMode == 'false' }}
       uses: pupilfirst/actions/grading@v1
@@ -76,7 +76,7 @@ runs:
         repository: ${{ steps.get-repo-name.outputs.result }}
         path: ${{ inputs.repoPath }}
     - name: Report invalid repository URL in submission
-      if: ${{ steps.checkout-repo.outcome != 'success' && inputs.testMode == 'false' }}
+      if: ${{ steps.get-repo-name.outputs.result != 'failure' && steps.checkout-repo.outcome != 'success' && inputs.testMode == 'false' }}
       uses: pupilfirst/actions/grading@v1
       with:
         fail_submission: true
