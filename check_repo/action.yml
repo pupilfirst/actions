@@ -54,6 +54,7 @@ runs:
     - name: Stop if we failed to get the repo URL
       if: steps.get-repo-url.outcome != 'success'
       run: exit 1
+      shell: bash
     - name: Check out the repository with submitted code
       uses: actions/checkout@v2
       continue-on-error: true
@@ -77,6 +78,7 @@ runs:
     - name: Stop if we failed to clone the repo
       if: steps.checkout-repo.outcome != 'success'
       run: exit 1
+      shell: bash
     - name: Verify structure of the repo
       id: verify-structure
       uses: actions/github-script@v6
@@ -118,3 +120,4 @@ runs:
     - name: Stop with error code if the repo structure was invalid
       if: ${{ !steps.verify-structure.outputs.isValid }}
       run: exit 1
+      shell: bash
