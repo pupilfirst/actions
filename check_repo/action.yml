@@ -13,11 +13,8 @@ inputs:
     required: false
     default: "false"
 outputs:
-  cloneOutcome:
-    description: Whether the submitted repo was checked out
-    value: ${{ steps.checkout-repo.outcome }}
-  missingPaths:
-    description: Whether the repository structure is valid or not
+  result:
+    description: Returns 'success' if all checks pass.
     value: ${{ steps.verify-structure.outputs.result }}
 runs:
   using: composite
@@ -114,29 +111,30 @@ runs:
             return await globber.glob();
           }));
 
-          const missingFiles = allMissingFiles.flatMap(files => {
+          let missingSomeFiles = false;
+
+          allMissingFiles.each(files => {
             if (files.length === 0) {
-              return globber.getSearchPaths();
-            } else {
-              return [];
+              missingSomeFiles = true;
             }
           });
 
-          if (missingFiles.length === 0) {
-            return "";
+          if (missingSomeFiles) {
+            return "failure";
           } else {
-            return missingFiles.map(path => "- " + path.replace(/\/home\/runner\/work\/student-[0-9]+\/student-[0-9]+\/submission\//, "")).join("\n");
+            return "success"
           }
     - name: Report invalid repository URL in submission
-      if: ${{ steps.verify-structure.outputs.result != '' && inputs.testMode == 'false' }}
+      if: ${{ steps.verify-structure.outputs.result == 'failure' && inputs.testMode == 'false' }}
       uses: pupilfirst/actions/grading@v1
       with:
+        globs: ${{ inputs.globs }}
         fail_submission: true
         feedback: |
           It looks like your repository doesn't contain the files or folders
-          that this assignment requires it to have. We went through your repo,
-          but couldn't find anything at the following paths:
+          that this assignment requires it to have. Please make sure that the
+          following paths are present in your repo:
 
           ```
-          ${{ steps.verify-structure.outputs.result }}
+          ${{ inputs.globs }}
           ```
