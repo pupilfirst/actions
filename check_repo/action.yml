@@ -23,23 +23,31 @@ runs:
       uses: actions/checkout@v2
     - name: Extract the student submission repo from URL
       uses: actions/github-script@v6
-      id: get-repo-url
+      id: get-repo-name
       continue-on-error: true
       with:
         script: |
           const submission = require('./submission.json')
           const gitURL =  submission.checklist[0].result
           const regex = /(?:git@|https:\/\/)github.com[:\/]([a-zA-Z0-9\-_.]+\/[a-zA-Z0-9\-_.\/]+)$/g
-          const repoUrl = regex.exec(gitURL)[1].replace(/.git$|\/$/, "")
+          const matches = regex.exec(gitURL)
 
-          if (repoUrl.split("/").length == 2) {
-            return repoUrl
+          let repoName;
+
+          if (matches === null) {
+            throw "The submitted URL doesn't look like it points to a GitHub repo: " + gitURL
+          } else {
+            repoName = matches[1].replace(/.git$|\/$/, "")
+          }
+
+          if (repoName.split("/").length == 2) {
+            return repoName
           } else {
             throw "The submitted URL seems to be of a folder inside a repository"
           }
         result-encoding: string
     - name: Report invalid repository URL in submission
-      if: steps.get-repo-url.outcome != 'success' && !inputs.testMode
+      if: steps.get-repo-name.outcome != 'success' && !inputs.testMode
       uses: pupilfirst/actions/grading@v1
       with:
         fail_submission: true
@@ -52,7 +60,7 @@ runs:
           https://github.com/USERNAME/wd201
           ```
     - name: Stop if we failed to get the repo URL
-      if: steps.get-repo-url.outcome != 'success'
+      if: steps.get-repo-name.outcome != 'success'
       run: exit 1
       shell: bash
     - name: Check out the repository with submitted code
@@ -60,7 +68,7 @@ runs:
       continue-on-error: true
       id: checkout-repo
       with:
-        repository: ${{ steps.get-repo-url.outputs.result }}
+        repository: ${{ steps.get-repo-name.outputs.result }}
         path: ${{ inputs.repoPath }}
     - name: Report invalid repository URL in submission
       if: steps.checkout-repo.outcome != 'success' && !inputs.testMode
