@@ -39,23 +39,20 @@ runs:
 
           if (matches === null) {
             console.log("The submitted URL doesn't look like it points to a GitHub repo: " + gitURL);
-            return { errored: true };
+            return false
           } else {
             repoName = matches[1].replace(/.git$|\/$/, "");
           }
 
           if (repoName.split("/").length == 2) {
-            return { errored: false, repoName: repoName };
+            return repoName
           } else {
             console.log("The submitted URL seems to be of a folder inside a repository");
-            return { errored: true };
+            return false
           }
         result-encoding: string
-    - name: Check value of errored
-      run: echo "steps.get-repo-name.outputs.result.errored is ${{ steps.get-repo-name.outputs.result.errored }}"
-      shell: bash
     - name: Report invalid repository URL in submission
-      if: ${{ steps.get-repo-name.outputs.result.errored && !inputs.testMode }}
+      if: ${{ !steps.get-repo-name.outputs.result && !inputs.testMode }}
       uses: pupilfirst/actions/grading@v1
       with:
         fail_submission: true
@@ -68,12 +65,12 @@ runs:
           https://github.com/USERNAME/wd201
           ```
     - name: Check out the repository with submitted code
-      if: ${{ !steps.get-repo-name.outputs.result.errored }}
+      if: ${{ !!steps.get-repo-name.outputs.result }}
       uses: actions/checkout@v2
       continue-on-error: true
       id: checkout-repo
       with:
-        repository: ${{ steps.get-repo-name.outputs.result.repoName }}
+        repository: ${{ steps.get-repo-name.outputs.result }}
         path: ${{ inputs.repoPath }}
     - name: Report invalid repository URL in submission
       if: ${{ steps.checkout-repo.outcome != 'success' && !inputs.testMode }}
@@ -118,12 +115,13 @@ runs:
             }
           }));
 
-          return({
-            isValid: missingPaths.length === 0
-            missingPaths: missingPaths.map(path => "- " + path).join("\n")
-          })
+          if (missingPaths.length === 0) {
+            return false
+          } else {
+            return missingPaths.map(path => "- " + path).join("\n")
+          }
     - name: Report invalid repository URL in submission
-      if: ${{ !steps.verify-structure.outputs.result.isValid && !inputs.testMode }}
+      if: ${{ !!steps.verify-structure.outputs.result && !inputs.testMode }}
       uses: pupilfirst/actions/grading@v1
       with:
         fail_submission: true
@@ -132,4 +130,4 @@ runs:
           that this assignment requires it to have. We went through your repo,
           but couldn't find anything at the following paths:
 
-          ${{ steps.verify-structure.missingPaths }}
+          ${{ steps.verify-structure.outputs.result }}
