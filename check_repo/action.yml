@@ -2,7 +2,7 @@ name: Check Repository Structure
 description: Check whether the file structure of a supplied repository is correct
 inputs:
   globs:
-    description: Comma-separated globs to check.
+    description: Globs to check, one per line.
     required: true
   repoPath:
     description: Path to the repository.
@@ -99,6 +99,8 @@ runs:
       id: verify-structure
       uses: actions/github-script@v6
       with:
+        globs: ${{ inputs.globs }}
+        repoPath: ${{ inputs.repoPath }}
         script: |
           const patterns = core.getMultilineInput("globs", { required: true });
           const repoPath = core.getInput("repoPath");
