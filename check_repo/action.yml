@@ -109,7 +109,7 @@ runs:
 
           let missingSomeFiles = false;
 
-          await Promise.all(globbers.forEach(async (globber) => {
+          await Promise.all(globbers.map(async (globber) => {
             const files = await globber.glob();
 
             if (files.length === 0) {
@@ -120,7 +120,7 @@ runs:
           if (missingSomeFiles) {
             return "failure";
           } else {
-            return "success"
+            return "success";
           }
     - name: Report invalid repository URL in submission
       if: ${{ steps.verify-structure.outputs.result == 'failure' && inputs.testMode == 'false' }}
