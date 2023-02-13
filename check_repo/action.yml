@@ -86,7 +86,7 @@ runs:
           the URL we tried to clone a repository from:
 
           ```
-          https://github.com/${{ steps.get-repo-name.outputs.result.repoName }}
+          https://github.com/${{ steps.get-repo-name.outputs.result }}
           ```
 
           This usually happens if the supplied URL is incorrect, or the
