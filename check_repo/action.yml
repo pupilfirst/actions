@@ -39,7 +39,7 @@ runs:
 
           if (matches === null) {
             console.log("The submitted URL doesn't look like it points to a GitHub repo: " + gitURL);
-            return false
+            return "failure"
           } else {
             repoName = matches[1].replace(/.git$|\/$/, "");
           }
@@ -48,11 +48,11 @@ runs:
             return repoName
           } else {
             console.log("The submitted URL seems to be of a folder inside a repository");
-            return false
+            return "failure"
           }
         result-encoding: string
     - name: Report invalid repository URL in submission
-      if: ${{ !steps.get-repo-name.outputs.result && !inputs.testMode }}
+      if: ${{ steps.get-repo-name.outputs.result == "failure" && !inputs.testMode }}
       uses: pupilfirst/actions/grading@v1
       with:
         fail_submission: true
@@ -65,7 +65,7 @@ runs:
           https://github.com/USERNAME/wd201
           ```
     - name: Check out the repository with submitted code
-      if: ${{ !!steps.get-repo-name.outputs.result }}
+      if: ${{ steps.get-repo-name.outputs.result != "failure" }}
       uses: actions/checkout@v2
       continue-on-error: true
       id: checkout-repo
@@ -116,12 +116,12 @@ runs:
           }));
 
           if (missingPaths.length === 0) {
-            return false
+            return ""
           } else {
             return missingPaths.map(path => "- " + path).join("\n")
           }
     - name: Report invalid repository URL in submission
-      if: ${{ !!steps.verify-structure.outputs.result && !inputs.testMode }}
+      if: ${{ steps.verify-structure.outputs.result != "" && !inputs.testMode }}
       uses: pupilfirst/actions/grading@v1
       with:
         fail_submission: true
