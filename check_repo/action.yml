@@ -1,39 +1,83 @@
-name: "Check Repository Structure"
-description: "Check whether the file structure of a supplied repository is correct"
+name: Check Repository Structure
+description: Check whether the file structure of a supplied repository is correct
 inputs:
   globs:
     description: Comma-separated globs to check.
     required: true
-  repoUrl:
-    description: URL to the repository.
-    required: true
   repoPath:
     description: Path to the repository.
+    required: false
     default: ""
   testMode:
     description: Set to true for debugging
+    required: false
     default: false
 outputs:
-  response: # output will be available to future steps
-    description: "Response from the LMS"
+  isValid:
+    description: Whether the repository structure is valid or not
+    value: ${{ steps.verify-structure.outputs.isValid }}
 runs:
-  using: "composite"
+  using: composite
   steps:
+    - name: Check out the parent repository with student submission data
+      uses: actions/checkout@v2
+    - name: Extract the student submission repo from URL
+      uses: actions/github-script@v5
+      id: get-repo-url
+      continue-on-error: true
+      with:
+        script: |
+          const submission = require('./submission.json')
+          const gitURL =  submission.checklist[0].result
+          const regex = /(?:git@|https:\/\/)github.com[:\/]([a-zA-Z0-9\-_.]+\/[a-zA-Z0-9\-_.\/]+)$/g
+          const repoUrl = regex.exec(gitURL)[1].replace(/.git$|\/$/, "")
+
+          if (repoUrl.split("/").length == 2) {
+            return repoUrl
+          } else {
+            throw "The submitted URL seems to be of a folder inside a repository"
+          }
+        result-encoding: string
+    - name: Report invalid repository URL in submission
+      if: steps.get-repo-url.outcome !== 'success' && !inputs.testMode
+      uses: pupilfirst/actions/grading@v1
+      with:
+        fail_submission: true
+        feedback: |
+          We're sorry, but we couldn't read a valid GitHub URL in your
+          submission. When making another submission, please ensure that you
+          submit a GitHub URL that looks like this:
+
+          ```
+          https://github.com/USERNAME/wd201
+          ```
+    - name: Stop if we failed to get the repo URL
+      if: steps.get-repo-url.outcome !== 'success'
+      run: exit 1
     - name: Check out the repository with submitted code
       uses: actions/checkout@v2
       continue-on-error: true
       id: checkout-repo
       with:
-        repository: ${{inputs.repoUrl}}
-        path: submission
+        repository: ${{ steps.get-repo-url.outputs.result }}
+        path: ${{ inputs.repoPath }}
     - name: Report invalid repository URL in submission
-      if: steps.checkout-repo.outcome != 'success'
+      if: steps.checkout-repo.outcome !== 'success' && !inputs.testMode
       uses: pupilfirst/actions/grading@v1
       with:
         fail_submission: true
-        feedback: The submitted repository URL is either invalid or private. Before making another submission, please make sure that your GitHub repository is visible to the public.
+        feedback: |
+          We're sorry, but we couldn't visit the GitHub URL that you supplied.
+          The URL _looked_ like it could be valid, but when we were unable to
+          clone a git repository using it. This usually happens if the supplied
+          URL is incorrect, or the repository is _private_.
+
+          Before making another submission, please ensure that the submitted
+          repository is visible to the public.
+    - name: Stop if we failed to clone the repo
+      if: steps.checkout-repo.outcome !== 'success'
+      run: exit 1
     - name: Verify structure of the repo
-      if: steps.checkout-repo.outcome === 'success'
       id: verify-structure
       uses: actions/github-script@v6
       with:
@@ -57,14 +101,11 @@ runs:
           })
 
           return({
-            outcome: missingPaths.length === 0 ? 'success' : 'failure',
+            isValid: missingPaths.length === 0
             missingPaths: missingPaths.map(path => "- " + path).join("\n")
           })
-      runs:
-        using: "node12"
-        main: "../dist/check_repo/index.js"
     - name: Report invalid repository URL in submission
-      if: steps.verify-structure.outcome != 'success'
+      if: ${{ !steps.verify-structure.outputs.isValid && !inputs.testMode }}
       uses: pupilfirst/actions/grading@v1
       with:
         fail_submission: true
@@ -73,7 +114,7 @@ runs:
           that this assignment requires it to have. We went through your repo,
           but couldn't find anything at the following paths:
 
-          {{steps.verify-structure.missingPaths}}
-    - name: Set fail condition
-      if: steps.verify-structure.outcome != 'success'
+          ${{ steps.verify-structure.missingPaths }}
+    - name: Stop with error code if the repo structure was invalid
+      if: ${{ !steps.verify-structure.outputs.isValid }}
       run: exit 1
