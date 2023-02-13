@@ -107,17 +107,15 @@ runs:
             return await glob.create(prefixedPattern);
           }));
 
-          const allMissingFiles = await Promise.all(globbers.flatMap(async (globber) => {
-            return await globber.glob();
-          }));
-
           let missingSomeFiles = false;
 
-          allMissingFiles.forEach(files => {
+          await Promise.all(globbers.forEach(async (globber) => {
+            const files = await globber.glob();
+
             if (files.length === 0) {
               missingSomeFiles = true;
             }
-          });
+          }));
 
           if (missingSomeFiles) {
             return "failure";
@@ -128,7 +126,6 @@ runs:
       if: ${{ steps.verify-structure.outputs.result == 'failure' && inputs.testMode == 'false' }}
       uses: pupilfirst/actions/grading@v1
       with:
-        globs: ${{ inputs.globs }}
         fail_submission: true
         feedback: |
           It looks like your repository doesn't contain the files or folders
