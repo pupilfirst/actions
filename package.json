@@ -4,10 +4,9 @@
   "description": "Actions for Pupilfirst LMS",
   "scripts": {
     "lint": "eslint .",
-    "prepare:reporting": "ncc build reporting.js -o dist/reporting --source-map --license licenses.txt",
-    "prepare:grading": "ncc build grading.js -o dist/grading --source-map --license licenses.txt",
-    "prepare:check_repo": "ncc build check_repo/index.js -o dist/check_repo --source-map --license licenses.txt",
-    "prepare": "npm run prepare:reporting && npm run prepare:grading && npm run prepare:check_repo",
+    "prepareReporting": "ncc build reporting.js -o dist/reporting --source-map --license licenses.txt",
+    "prepareGrading": "ncc build grading.js -o dist/grading --source-map --license licenses.txt",
+    "prepare": "npm run prepareReporting && npm run prepareGrading",
     "test": "jest",
     "all": "npm run lint && npm run prepare && npm run test"
   },
