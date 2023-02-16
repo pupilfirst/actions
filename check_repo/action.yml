@@ -1,5 +1,5 @@
 name: Check Repository Structure
-description: Check whether the file structure of a supplied repository is correct
+description: Fetches a GitHub repo from a submission and verified presence of paths in it
 inputs:
   globs:
     description: Globs to check, one per line.
@@ -19,9 +19,6 @@ outputs:
 runs:
   using: composite
   steps:
-    - name: Check testMode
-      run: echo "testMode is now ${{ inputs.testMode }}"
-      shell: bash
     - name: Check out the parent repository with student submission data
       uses: actions/checkout@v2
     - name: Extract the student submission repo from URL
