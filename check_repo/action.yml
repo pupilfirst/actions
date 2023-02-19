@@ -12,6 +12,10 @@ inputs:
     description: Set to true for debugging
     required: false
     default: "false"
+  githubUrlIndex:
+    description: Index for the submission checklist item asking for GitHub URL
+    required: false
+    default: "0"
 outputs:
   result:
     description: Returns 'success' if all checks pass.
@@ -29,7 +33,7 @@ runs:
         result-encoding: string
         script: |
           const submission = require('./submission.json');
-          const gitURL =  submission.checklist[0].result;
+          const gitURL =  submission.checklist[${{ inputs.githubUrlIndex }}].result;
           const regex = /(?:git@|https:\/\/)github.com[:\/]([a-zA-Z0-9\-_.]+\/[a-zA-Z0-9\-_.\/]+)$/g;
           const matches = regex.exec(gitURL);
 
