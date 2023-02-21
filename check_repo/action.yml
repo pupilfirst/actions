@@ -115,8 +115,8 @@ runs:
         fail_submission: true
         feedback: |
           It looks like your repository doesn't contain some files or folders
-          that this assignment requires it to have. Our checks showed that the
-          following paths are missing in your git repository:
+          that this assignment requires. Please check the following list of
+          paths and ensure that they're present in your repository:
 
           ```
           ${{ steps.verify-structure.outputs.result }}
