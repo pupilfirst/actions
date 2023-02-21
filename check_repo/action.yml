@@ -128,6 +128,6 @@ runs:
         verifyStructureOutput: ${{ steps.verify-structure.outputs.result }}
         result-encoding: string
         script: |
-          const verifyStructureOutput = core.getInput("verifyStructureOutput", { required: true });
+          const verifyStructureOutput = core.getInput("verifyStructureOutput");
           const final = verifyStructureOutput == "" ? "success" : "failure";
           return final;
