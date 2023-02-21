@@ -104,12 +104,7 @@ runs:
             const prefixedPattern = repoPath === "" ? pattern : repoPath + "/" + pattern;
             const globber = await glob.create(prefixedPattern);
             const files = await globber.glob();
-
-            if (files.length === 0) {
-              return [pattern];
-            } else {
-              return [];
-            }
+            return files.length === 0 ? [pattern] : []
           }));
 
           return missingPaths.flat().map(path => "- " + path).join("\n");
