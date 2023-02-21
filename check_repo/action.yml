@@ -100,17 +100,17 @@ runs:
           const patterns = core.getMultilineInput("globs", { required: true });
           const repoPath = core.getInput("repoPath");
 
-          const missingPaths = await Promise.all(patterns.flatMap(async (pattern) => {
+          const missingPaths = await Promise.all(patterns.map(async (pattern) => {
             const prefixedPattern = repoPath === "" ? pattern : repoPath + "/" + pattern;
             const globber = await glob.create(prefixedPattern);
             const files = await globber.glob();
 
             if (files.length === 0) {
-              return globber.getSearchPaths();
+              return [pattern]
             } else {
               []
             }
-          }));
+          })).flat();
 
           if (missingPaths.length === 0) {
             return "";
