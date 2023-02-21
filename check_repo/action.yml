@@ -112,13 +112,7 @@ runs:
             }
           }));
 
-          const flattenedPaths = missingPaths.flat();
-
-          if (flattenedPaths.length === 0) {
-            return "";
-          } else {
-            return flattenedPaths.map(path => "- " + path).join("\n")
-          }
+          return missingPaths.flat().map(path => "- " + path).join("\n");
     - name: Report invalid repository URL in submission
       if: ${{ steps.verify-structure.outputs.result != '' && inputs.testMode == 'false' }}
       uses: pupilfirst/actions/grading@v1
