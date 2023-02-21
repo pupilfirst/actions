@@ -106,9 +106,9 @@ runs:
             const files = await globber.glob();
 
             if (files.length === 0) {
-              return [pattern]
+              return [pattern];
             } else {
-              []
+              return [];
             }
           }));
 
