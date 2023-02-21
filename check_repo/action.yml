@@ -15,7 +15,7 @@ inputs:
 outputs:
   result:
     description: Returns 'success' if all checks pass.
-    value: ${{ steps.verify-structure.outputs.result }}
+    value: ${{ steps.final-step.outputs.result }}
 runs:
   using: composite
   steps:
@@ -100,36 +100,32 @@ runs:
           const patterns = core.getMultilineInput("globs", { required: true });
           const repoPath = core.getInput("repoPath");
 
-          const globbers = await Promise.all(patterns.map(async (pattern) => {
+          const missingPaths = await Promise.all(patterns.map(async (pattern) => {
             const prefixedPattern = repoPath === "" ? pattern : repoPath + "/" + pattern;
-            return await glob.create(prefixedPattern);
-          }));
-
-          let missingSomeFiles = false;
-
-          await Promise.all(globbers.map(async (globber) => {
+            const globber = await glob.create(prefixedPattern);
             const files = await globber.glob();
-
-            if (files.length === 0) {
-              missingSomeFiles = true;
-            }
+            return files.length === 0 ? [pattern] : []
           }));
 
-          if (missingSomeFiles) {
-            return 'failure';
-          } else {
-            return 'success';
-          }
+          return missingPaths.flat().map(path => "- " + path).join("\n");
     - name: Report invalid repository URL in submission
-      if: ${{ steps.verify-structure.outputs.result == 'failure' && inputs.testMode == 'false' }}
+      if: ${{ steps.verify-structure.outputs.result != '' && inputs.testMode == 'false' }}
       uses: pupilfirst/actions/grading@v1
       with:
         fail_submission: true
         feedback: |
-          It looks like your repository doesn't contain the files or folders
-          that this assignment requires it to have. Please make sure that the
-          following paths are present in your repo:
+          It looks like your repository doesn't contain some files or folders
+          that this assignment requires. Please check the following list of
+          paths and ensure that they're present in your repository:
 
           ```
-          ${{ inputs.globs }}
+          ${{ steps.verify-structure.outputs.result }}
           ```
+    - name: Provide success or failure response from composite action
+      id: final-step
+      uses: actions/github-script@v6
+      with:
+        verifyStructureOutput: ${{ steps.verify-structure.outputs.result }}
+        result-encoding: string
+        script: |
+          return core.getInput("verifyStructureOutput") == "" ? "success" : "failure";
