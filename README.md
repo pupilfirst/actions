@@ -10,7 +10,7 @@ This repository holds all the Github actions associated with the Pupilfirst LMS 
 
 When releasing a new version, you should always push two tags - the full version tag - `v1.2.3` for example, and the corresponding major version tag - `v1`, for `v1.2.3`. You will need to delete the existing major version tag, and push a replacement tag for each release.
 
-````bash
+```bash
 # Delete the old local tag, and create it anew
 git tag -d v1
 git tag v1
@@ -41,7 +41,7 @@ The reporting action accepts three inputs - `report_file_path`, `status` and `de
     REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
     # User API token of the review bot user.
     REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
-````
+```
 
 In the absence of `status` and `description` inputs to the action, the action expects a `report.json` file in the checked out repository to complete the reporting. The `report_file_path` should be supplied accurately - which is the relative path to the file in the checked out repository. The `report.json` should have the keys `report` which stores the report description and `status` which stores the status to be reported. In the absence of a valid `report.json` or inputs directly to the action, an error will be reported to the LMS. Ensure that your automated tests generate a `report.json` output with the said keys before the reporting step. Here is an example of using the action without `status` and `description` input:
 
