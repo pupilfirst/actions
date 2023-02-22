@@ -11,12 +11,12 @@ This repository holds all the Github actions associated with the Pupilfirst LMS 
 When releasing a new version, you should always push two tags - the full version tag - `v1.2.3` for example, and the corresponding major version tag - `v1`, for `v1.2.3`. You will need to delete the existing major version tag, and push a replacement tag for each release.
 
 ```bash
-# Delete the old local tag, and create it anew
+# Delete the old local tag, and create it anew.
 git tag -d v1
 git tag v1
 git tag v1.2.3
 
-# Delete the old tag on origin
+# Delete the old tag on origin before pushing updated ones.
 git push origin :refs/tags/v1
 git push origin v1
 git push origin v1.2.3
