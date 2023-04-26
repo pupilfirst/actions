@@ -103,8 +103,17 @@ runs:
           const missingPaths = await Promise.all(patterns.map(async (pattern) => {
             const prefixedPattern = repoPath === "" ? pattern : repoPath + "/" + pattern;
             const globber = await glob.create(prefixedPattern);
-            const files = await globber.glob();
-            return files.length === 0 ? [pattern] : []
+
+            try {
+              const files = await globber.glob();
+              return files.length === 0 ? [pattern] : []
+            } catch (error) {
+              if (error.code === "ENOTDIR") {
+                return [pattern];
+              }
+
+              throw error;
+            }
           }));
 
           return missingPaths.flat().map(path => "- " + path).join("\n");

@@ -24,6 +24,17 @@ git push origin v1.2.3
 
 ## Usage
 
+### Check Repo
+
+When a student submission contains a URL to a GitHub repository, the `check_repo` action can be used to clone it and check for the presence of required files or folders.
+
+To fetch the repo URL, the action makes the assumption that the first question in the target checklist is asking for the GitHub repo URL. The following steps are performed:
+
+1. The action will validate the repo URL (that it is, indeed, a GitHub repo URL), and then clones it. By default, it clones to the root path, but this can be customized using the `repoPath` input.
+2. It then checks for the presence of files and folders specified using the `globs` input array.
+
+If any failure occurs during these checks, the student's submission will be rejected with appropriate feedback. To avoid sending any reports to the LMS, set the `testMode` input to `true`.
+
 ### Reporting
 
 The reporting action accepts three inputs - `report_file_path`, `status` and `description` . The `status` and `description` is specifically useful to report to the LMS that a test has begun in the automated system. The action expects the `REVIEW_END_POINT` and `REVIEW_BOT_USER_TOKEN` as env , the first being the GraphQL API endpoint of your school and the latter being the user token for the user created for bot actions. It is recommended to keep both of these as secrets. Here is a basic example:
