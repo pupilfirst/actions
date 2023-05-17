@@ -59,7 +59,7 @@ runs:
           submit a GitHub URL that looks like this:
 
           ```
-          https://github.com/USERNAME/wd201
+          https://github.com/USERNAME/REPONAME
           ```
     - name: Check out the repository with submitted code
       if: ${{ steps.get-repo-name.outputs.result != 'failure' }}
