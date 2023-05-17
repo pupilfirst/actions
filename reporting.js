@@ -16,17 +16,17 @@ const graphQLClient = new GraphQLClient(endpoint, {
 const completedSubmissionReportQuery = gql`
   mutation CompletedSubmissionReport(
     $submissionId: ID!
-    $testReport: String
+    $report: String
     $status: SubmissionReportStatus!
-    $context_name: String!
-    $context_title: String
+    $reporter: String!
+    $heading: String
   ) {
     concludeSubmissionReport(
       submissionId: $submissionId
-      testReport: $testReport
+      report: $report
       status: $status
-      context_name: $context_name
-      context_title: $context_title
+      reporter: $reporter
+      heading: $heading
     ) {
       success
     }
@@ -36,15 +36,15 @@ const completedSubmissionReportQuery = gql`
 const inProgressSubmissionReportQuery = gql`
   mutation InProgressSubmissionReport(
     $submissionId: ID!
-    $testReport: String
-    $context_name: String!
-    $context_title: String
+    $report: String
+    $reporter: String!
+    $heading: String
   ) {
     beginProcessingSubmissionReport(
       submissionId: $submissionId
-      testReport: $testReport
-      context_name: $context_name
-      context_title: $context_title
+      report: $report
+      reporter: $reporter
+      heading: $heading
     ) {
       success
     }
@@ -54,15 +54,15 @@ const inProgressSubmissionReportQuery = gql`
 const queuedSubmissionReportQuery = gql`
   mutation QueuedSubmissionReport(
     $submissionId: ID!
-    $testReport: String
-    $context_name: String!
-    $context_title: String
+    $report: String
+    $reporter: String!
+    $heading: String
   ) {
     queueSubmissionReport(
       submissionId: $submissionId
-      testReport: $testReport
-      context_name: $context_name
-      context_title: $context_title
+      report: $report
+      reporter: $reporter
+      heading: $heading
     ) {
       success
     }
@@ -104,12 +104,12 @@ if (reportFilePath != "") {
 let reportIfGraded = (reportData) => {
   let grading = reportData.grading;
 
-  let testReport =
+  let report =
     grading == "reject"
       ? "Submission will be eventually rejected and feedback will be shared"
       : "";
 
-  return testReport;
+  return report;
 };
 
 let truncateReport = (reportText) => {
@@ -142,9 +142,9 @@ if (reportData != undefined) {
 
 let variables = {
   submissionId: submissionData.id,
-  testReport: reportDescription,
+  report: reportDescription,
   status: reportStatus,
-  context_name: "Virtual Teaching Assistant",
+  reporter: "Virtual Teaching Assistant",
 };
 
 async function run() {
@@ -152,25 +152,25 @@ async function run() {
   switch (statusInput) {
     case "queued":
       mutation = queuedSubmissionReportQuery;
-      variables.context_title = "Automated tests are queued";
+      variables.heading = "Automated tests are queued";
       break;
     case "in_progress":
       mutation = inProgressSubmissionReportQuery;
-      variables.context_title = "Automated tests are in progress";
+      variables.heading = "Automated tests are in progress";
       break;
     case "error":
       mutation = completedSubmissionReportQuery;
-      variables.context_title = "Automated tests passed";
+      variables.heading = "Automated tests passed";
       variables.status = "error";
       break;
     case "failure":
       mutation = completedSubmissionReportQuery;
-      variables.context_title = "Automated tests failed";
+      variables.heading = "Automated tests failed";
       variables.status = "failure";
       break;
     case "success":
       mutation = completedSubmissionReportQuery;
-      variables.context_title = "Automated tests passed";
+      variables.heading = "Automated tests passed";
       variables.status = "success";
       break;
     default:
