@@ -17,12 +17,16 @@ const completedSubmissionReportQuery = gql`
   mutation CompletedSubmissionReport(
     $submissionId: ID!
     $testReport: String
-    $conclusion: SubmissionReportConclusion!
+    $status: SubmissionReportStatus!
+    $context_name: String!
+    $context_title: String
   ) {
     concludeSubmissionReport(
       submissionId: $submissionId
       testReport: $testReport
-      conclusion: $conclusion
+      status: $status
+      context_name: $context_name
+      context_title: $context_title
     ) {
       success
     }
@@ -30,10 +34,17 @@ const completedSubmissionReportQuery = gql`
 `;
 
 const inProgressSubmissionReportQuery = gql`
-  mutation InProgressSubmissionReport($submissionId: ID!, $testReport: String) {
+  mutation InProgressSubmissionReport(
+    $submissionId: ID!
+    $testReport: String
+    $context_name: String!
+    $context_title: String
+  ) {
     beginProcessingSubmissionReport(
       submissionId: $submissionId
       testReport: $testReport
+      context_name: $context_name
+      context_title: $context_title
     ) {
       success
     }
@@ -41,10 +52,17 @@ const inProgressSubmissionReportQuery = gql`
 `;
 
 const queuedSubmissionReportQuery = gql`
-  mutation QueuedSubmissionReport($submissionId: ID!, $testReport: String) {
+  mutation QueuedSubmissionReport(
+    $submissionId: ID!
+    $testReport: String
+    $context_name: String!
+    $context_title: String
+  ) {
     queueSubmissionReport(
       submissionId: $submissionId
       testReport: $testReport
+      context_name: $context_name
+      context_title: $context_title
     ) {
       success
     }
@@ -67,13 +85,10 @@ const reportFilePath = core.getInput("report_file_path");
 
 const statusInput = core.getInput("status");
 
-const conclusionInput = core.getInput("conclusion");
-
 const descriptionInput = core.getInput("description");
 
 // Check for report data
 let reportData;
-let reportConclusion;
 let reportDescription;
 
 if (reportFilePath != "") {
@@ -112,30 +127,24 @@ let truncateReport = (reportText) => {
   }
 };
 
+let reportStatus = statusInput;
+
 if (reportData != undefined) {
-  reportConclusion = reportData.status;
+  reportStatus = reportData.status;
   reportDescription =
     truncateReport(reportData.report) ||
     descriptionInput ||
     reportIfGraded(reportData) ||
     "Test report unavailable";
 } else {
-  reportConclusion = conclusionInput;
   reportDescription = descriptionInput || "Test report unavailable";
 }
-
-let reportStatus = statusInput;
-
-const validConclusions = ["success", "error", "failure"];
-
-let validConclusion = (conclusion) => {
-  return validConclusions.includes(conclusion);
-};
 
 let variables = {
   submissionId: submissionData.id,
   testReport: reportDescription,
   status: reportStatus,
+  context_name: "Virtual Teaching Assistant",
 };
 
 async function run() {
@@ -143,18 +152,26 @@ async function run() {
   switch (statusInput) {
     case "queued":
       mutation = queuedSubmissionReportQuery;
+      variables.context_title = "Automated tests are queued";
       break;
     case "in_progress":
       mutation = inProgressSubmissionReportQuery;
+      variables.context_title = "Automated tests are in progress";
       break;
-    case "completed":
+    case "error":
       mutation = completedSubmissionReportQuery;
-      if (validConclusion(reportConclusion) && reportDescription != undefined) {
-        variables.conclusion = reportConclusion;
-      } else {
-        throw "Invalid conclusion for completed status or missing description";
-      }
-
+      variables.context_title = "Automated tests passed";
+      variables.status = "error";
+      break;
+    case "failure":
+      mutation = completedSubmissionReportQuery;
+      variables.context_title = "Automated tests failed";
+      variables.status = "failure";
+      break;
+    case "success":
+      mutation = completedSubmissionReportQuery;
+      variables.context_title = "Automated tests passed";
+      variables.status = "success";
       break;
     default:
       throw "Invalid submission report status";
