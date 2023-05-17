@@ -7202,13 +7202,17 @@ const graphQLClient = new GraphQLClient(endpoint, {
 const completedSubmissionReportQuery = gql`
   mutation CompletedSubmissionReport(
     $submissionId: ID!
-    $testReport: String
-    $conclusion: SubmissionReportConclusion!
+    $report: String
+    $status: SubmissionReportStatus!
+    $reporter: String!
+    $heading: String
   ) {
     concludeSubmissionReport(
       submissionId: $submissionId
-      testReport: $testReport
-      conclusion: $conclusion
+      report: $report
+      status: $status
+      reporter: $reporter
+      heading: $heading
     ) {
       success
     }
@@ -7216,10 +7220,17 @@ const completedSubmissionReportQuery = gql`
 `;
 
 const inProgressSubmissionReportQuery = gql`
-  mutation InProgressSubmissionReport($submissionId: ID!, $testReport: String) {
+  mutation InProgressSubmissionReport(
+    $submissionId: ID!
+    $report: String
+    $reporter: String!
+    $heading: String
+  ) {
     beginProcessingSubmissionReport(
       submissionId: $submissionId
-      testReport: $testReport
+      report: $report
+      reporter: $reporter
+      heading: $heading
     ) {
       success
     }
@@ -7227,10 +7238,17 @@ const inProgressSubmissionReportQuery = gql`
 `;
 
 const queuedSubmissionReportQuery = gql`
-  mutation QueuedSubmissionReport($submissionId: ID!, $testReport: String) {
+  mutation QueuedSubmissionReport(
+    $submissionId: ID!
+    $report: String
+    $reporter: String!
+    $heading: String
+  ) {
     queueSubmissionReport(
       submissionId: $submissionId
-      testReport: $testReport
+      report: $report
+      reporter: $reporter
+      heading: $heading
     ) {
       success
     }
@@ -7253,13 +7271,10 @@ const reportFilePath = core.getInput("report_file_path");
 
 const statusInput = core.getInput("status");
 
-const conclusionInput = core.getInput("conclusion");
-
 const descriptionInput = core.getInput("description");
 
 // Check for report data
 let reportData;
-let reportConclusion;
 let reportDescription;
 
 if (reportFilePath != "") {
@@ -7275,12 +7290,12 @@ if (reportFilePath != "") {
 let reportIfGraded = (reportData) => {
   let grading = reportData.grading;
 
-  let testReport =
+  let report =
     grading == "reject"
       ? "Submission will be eventually rejected and feedback will be shared"
       : "";
 
-  return testReport;
+  return report;
 };
 
 let truncateReport = (reportText) => {
@@ -7288,37 +7303,34 @@ let truncateReport = (reportText) => {
     return reportText;
   }
 
-  if (reportText.length > 1000) {
-    return "Report truncated:\n\n" + reportText.substring(0, 970);
+  if (reportText.length > 10000) {
+    return (
+      "Report has been truncated because it was longer than 10,000 chars:\n\n---\n\n" +
+      reportText.substring(0, 9900)
+    );
   } else {
     return reportText;
   }
 };
 
+let reportStatus = statusInput;
+
 if (reportData != undefined) {
-  reportConclusion = reportData.status;
+  reportStatus = reportData.status;
   reportDescription =
     truncateReport(reportData.report) ||
     descriptionInput ||
     reportIfGraded(reportData) ||
     "Test report unavailable";
 } else {
-  reportConclusion = conclusionInput;
   reportDescription = descriptionInput || "Test report unavailable";
 }
 
-let reportStatus = statusInput;
-
-const validConclusions = ["success", "error", "failure"];
-
-let validConclusion = (conclusion) => {
-  return validConclusions.includes(conclusion);
-};
-
 let variables = {
   submissionId: submissionData.id,
-  testReport: reportDescription,
+  report: reportDescription,
   status: reportStatus,
+  reporter: "Virtual Teaching Assistant",
 };
 
 async function run() {
@@ -7326,18 +7338,26 @@ async function run() {
   switch (statusInput) {
     case "queued":
       mutation = queuedSubmissionReportQuery;
+      variables.heading = "Automated tests are queued";
       break;
     case "in_progress":
       mutation = inProgressSubmissionReportQuery;
+      variables.heading = "Automated tests are in progress";
       break;
-    case "completed":
+    case "error":
       mutation = completedSubmissionReportQuery;
-      if (validConclusion(reportConclusion) && reportDescription != undefined) {
-        variables.conclusion = reportConclusion;
-      } else {
-        throw "Invalid conclusion for completed status or missing description";
-      }
-
+      variables.heading = "Automated tests passed";
+      variables.status = "error";
+      break;
+    case "failure":
+      mutation = completedSubmissionReportQuery;
+      variables.heading = "Automated tests failed";
+      variables.status = "failure";
+      break;
+    case "success":
+      mutation = completedSubmissionReportQuery;
+      variables.heading = "Automated tests passed";
+      variables.status = "success";
       break;
     default:
       throw "Invalid submission report status";
