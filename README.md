@@ -1,3 +1,15 @@
+# MOVED
+
+The code for the actions originally maintained in this repository have moved to their own little homes:
+
+- Reporting: https://github.com/pupilfirst/report-action
+- Grading: https://github.com/pupilfirst/grade-action
+- Check Repo: https://github.com/pupilfirst/check-repo-action
+
+What follows is the original README:
+
+---
+
 This repository holds all the Github actions associated with the Pupilfirst LMS and its APIs.
 
 ## List of Actions
